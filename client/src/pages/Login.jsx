@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { login } from '../store';
+import { useDispatch } from 'react-redux';
+import { setCredentials, useLoginMutation } from '../store';
 
 const Login = () => {
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const [login, { error, isLoading }] = useLoginMutation();
   const [user, setUser] = useState({
     email: '',
     password: '',
@@ -18,12 +18,15 @@ const Login = () => {
     setUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(login(user))
-      .unwrap()
-      .then(() => navigate('/'))
-      .catch((err) => console.log(err.message));
+    try {
+      const res = await login(user).unwrap();
+      dispatch(setCredentials(res));
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <div className="container wrapper">
@@ -48,7 +51,11 @@ const Login = () => {
           />
         </div>
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && (
+          <p style={{ color: 'red' }}>
+            {error?.data?.message || error?.message}{' '}
+          </p>
+        )}
         <button className="submit" type="submit" disabled={isLoading}>
           {isLoading ? 'Loging in' : 'Log in'}
         </button>

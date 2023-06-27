@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { addGoal } from '../store';
-import useThunk from '../hooks/useThunk';
 import Loader from '../utils/Loader';
+import { useAddGoalMutation } from '../store/apis/goalsApi';
 
 const CreateGoal = () => {
   const [text, setText] = useState('');
-  const [createGoal, isLoading, error] = useThunk(addGoal);
+  const [addGoal, { error, isLoading }] = useAddGoalMutation();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    createGoal(text);
-    setText('');
+    try {
+      await addGoal({ text }).unwrap();
+      setText('');
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <form onSubmit={handleSubmit}>
@@ -35,7 +38,11 @@ const CreateGoal = () => {
         </button>
       </div>
 
-      {error && <p style={{ color: 'crimson' }}>{error}</p>}
+      {error && (
+        <p style={{ color: 'crimson' }}>
+          {error?.data?.message || error?.message || error?.error}
+        </p>
+      )}
     </form>
   );
 };

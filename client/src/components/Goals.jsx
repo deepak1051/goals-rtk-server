@@ -1,18 +1,11 @@
-import React, { Fragment, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import useThunk from '../hooks/useThunk';
-import { getAllGoals } from '../store';
+import React, { Fragment } from 'react';
+
 import EditGoal from './EditGoal';
 import Skeleton from 'react-loading-skeleton';
+import { useGetGoalsQuery } from '../store/apis/goalsApi';
 
 const Goals = () => {
-  const { goals } = useSelector((state) => state.goal);
-
-  const [fetchGoals, isLoading, error] = useThunk(getAllGoals);
-
-  useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
+  const { data: goals, error, isLoading } = useGetGoalsQuery();
 
   let content;
   if (isLoading) {
@@ -26,7 +19,7 @@ const Goals = () => {
       </>
     );
   } else if (error) {
-    content = error;
+    content = error?.data?.message || error?.message || error?.error;
   } else {
     content = goals.map((item) => (
       <div className="col p-2" key={item._id}>

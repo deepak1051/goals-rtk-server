@@ -15,6 +15,10 @@ const authSlice = createSlice({
       localStorage.removeItem('user');
       state.user = null;
     },
+    setCredentials(state, action) {
+      localStorage.setItem('user', JSON.stringify(action.payload));
+      state.user = action.payload;
+    },
   },
   extraReducers(builder) {
     builder.addCase(register.pending, (state, action) => {
@@ -46,6 +50,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, setCredentials } = authSlice.actions;
 
 export const authReducer = authSlice.reducer;

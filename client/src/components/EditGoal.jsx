@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
 import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
-import useThunk from '../hooks/useThunk';
-import { deleteGoal, updateGoal } from '../store';
 import Loader from '../utils/Loader';
+import {
+  useDeleteGoalMutation,
+  useUpdateGoalMutation,
+} from '../store/apis/goalsApi';
 
 const EditGoal = ({ goal }) => {
   const [inputText, setInputText] = useState(goal.text);
-  const [removeGoal, delLoading, delError] = useThunk(deleteGoal);
-  const [editGoal] = useThunk(updateGoal);
+
+  const [updateGoal, updateGoalResult] = useUpdateGoalMutation();
+  const [deleteGoal1, deleteGoalResult] = useDeleteGoalMutation();
 
   const [show, setShow] = useState(false);
 
-  const handleSubmit = () => {
-    console.log('update');
-    editGoal({ id: goal._id, text: inputText });
-    setShow(false);
+  const handleSubmit = async () => {
+    try {
+      await updateGoal({ id: goal._id, text: inputText }).unwrap();
+      setShow(false);
+    } catch (error) {
+      console.warn(error);
+    }
   };
 
   const handleDelete = (id) => {
-    removeGoal(id);
+    deleteGoal1(id);
   };
   return (
     <>
@@ -38,7 +44,7 @@ const EditGoal = ({ goal }) => {
               onClick={() => handleDelete(goal._id)}
               style={{ height: '40px', width: '45px' }}
             >
-              {delLoading ? (
+              {deleteGoalResult.isLoading ? (
                 <Loader />
               ) : (
                 <AiOutlineDelete style={{ color: 'red', fontSize: '20px' }} />
@@ -58,7 +64,9 @@ const EditGoal = ({ goal }) => {
             />
           </div>
           <button onClick={() => setShow(false)}>Cancel</button>
-          <button onClick={handleSubmit}>Save</button>
+          <button onClick={handleSubmit} disabled={updateGoalResult.isLoading}>
+            {updateGoalResult.isLoading ? 'Saving' : 'Save'}
+          </button>
         </div>
       )}
     </>

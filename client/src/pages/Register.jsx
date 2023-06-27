@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { register } from '../store';
+import { useDispatch } from 'react-redux';
+import { setCredentials, useRegisterMutation } from '../store';
 
 const Register = () => {
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const [register, { error, isLoading }] = useRegisterMutation();
   const [userData, setUser] = useState({
     name: '',
     email: '',
@@ -18,14 +18,16 @@ const Register = () => {
     setUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  console.log(error, isLoading);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(register(userData))
-      .unwrap()
-      .then(() => navigate('/'))
-      .catch((err) => console.log(err.message));
+    try {
+      const data = await register(userData).unwrap();
+
+      dispatch(setCredentials(data));
+      navigate('/');
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <div className="wrapper">
@@ -63,9 +65,13 @@ const Register = () => {
             onChange={handleChange}
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && (
+          <p style={{ color: 'red' }}>
+            {error?.data?.message || error?.message}
+          </p>
+        )}
         <button className="submit" type="submit" disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Sign in'}
+          {isLoading ? 'Registering...' : 'Register'}
         </button>
 
         <p className="signup-link">
